@@ -1,6 +1,6 @@
 // Customer reviews API for View Canada Immigration Services.
 //
-//   GET    /api/reviews            -> approved reviews (public)
+//   GET    /api/reviews            -> approved reviews (public; submission dates are not included)
 //   POST   /api/reviews            -> submit a review; stored as "pending" until approved
 //   GET    /api/reviews?all=1      -> every review, including pending   (admin)
 //   PATCH  /api/reviews            -> { id, action: "approve" | "unpublish" } (admin)
@@ -54,10 +54,20 @@ async function allReviews(store) {
   return items.filter(Boolean).sort((x, y) => (y.createdAt || "").localeCompare(x.createdAt || ""));
 }
 
+// What visitors see. The submission date stays private (admin only).
 const publicView = (r) => ({
   id: r.id, name: r.name, location: r.location, service: r.service,
-  rating: r.rating, text: r.text, createdAt: r.createdAt,
+  rating: r.rating, text: r.text, approved: r.approved || "",
 });
+
+// Approval date from the form: "YYYY-MM", "YYYY", "in-progress" or "" (not given).
+function parseApproved(monthValue, yearValue) {
+  if (yearValue === "in-progress") return "in-progress";
+  const year = Number.parseInt(yearValue, 10);
+  if (!(year >= 2000 && year <= new Date().getFullYear())) return "";
+  const month = Number.parseInt(monthValue, 10);
+  return month >= 1 && month <= 12 ? `${year}-${String(month).padStart(2, "0")}` : String(year);
+}
 
 export default async (req) => {
   const store = getStore({ name: "reviews", consistency: "strong" });
@@ -84,6 +94,7 @@ export default async (req) => {
     const service = SERVICES.includes(body.service) ? body.service : "";
     const rating = Number.parseInt(body.rating, 10);
     const text = cleanText(body.text, 1500);
+    const approved = parseApproved(body.approvedMonth, body.approvedYear);
 
     const errors = {};
     if (name.length < 2) errors.name = "Please enter your name.";
@@ -99,7 +110,7 @@ export default async (req) => {
 
     const review = {
       id: crypto.randomUUID(),
-      name, location, service, rating, text,
+      name, location, service, rating, text, approved,
       status: "pending",
       createdAt: new Date().toISOString(),
     };

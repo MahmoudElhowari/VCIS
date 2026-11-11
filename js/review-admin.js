@@ -23,6 +23,15 @@
     return n;
   }
 
+  var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  function approvalLabel(value) {
+    if (!value) return "";
+    if (value === "in-progress") return "Application in progress";
+    var parts = String(value).split("-");
+    var month = MONTHS[parseInt(parts[1], 10) - 1];
+    return month ? "Approved " + month + " " + parts[0] : "Approved in " + parts[0];
+  }
+
   function api(method, query, body) {
     return fetch(API + (query || ""), {
       method: method,
@@ -62,8 +71,9 @@
       var card = el("article", "review admin-review");
       card.appendChild(el("p", "admin-review__rating", "★".repeat(r.rating) + "☆".repeat(5 - r.rating) + "  " + r.rating + "/5"));
       card.appendChild(el("p", "review__text", r.text));
-      var meta = [r.name, r.location, r.service, new Date(r.createdAt).toLocaleString("en-CA")].filter(Boolean).join(" · ");
+      var meta = [r.name, r.location, r.service, approvalLabel(r.approved)].filter(Boolean).join(" · ");
       card.appendChild(el("p", "review__details", meta));
+      card.appendChild(el("p", "review__details", "Submitted " + new Date(r.createdAt).toLocaleString("en-CA") + " (only you can see this)"));
 
       var actions = el("div", "admin-review__actions");
       var primary = el("button", "btn " + (r.status === "pending" ? "btn--primary" : "btn--outline"), r.status === "pending" ? "Approve & publish" : "Unpublish");

@@ -642,3 +642,12 @@ fieldset.field { border: 0; padding: 0; }
 .admin-review__actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .admin-delete { border-color: var(--error); color: var(--error); }
 .admin-delete:hover { background: var(--error); color: var(--white); }
+
+/* Review form: approval month + year side by side, even on phones */
+.approval-field { border: 0; padding: 0; }
+.form-row--tight { gap: 12px; }
+@media (max-width: 560px) { .form-row.form-row--tight { grid-template-columns: 1fr 1fr; gap: 12px; } }
+.approval-field.has-error .field__error { display: block; }
+.review__approved { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 500; color: var(--success); }
+.review__approved svg { width: 15px; height: 15px; flex-shrink: 0; }
+.review__approved--progress { color: var(--slate-600); }

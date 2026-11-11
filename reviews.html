@@ -157,6 +157,39 @@
             </select>
           </div>
 
+          <fieldset class="field approval-field">
+            <legend>When was your application approved? <span class="optional">(optional)</span></legend>
+            <div class="form-row form-row--tight">
+              <div>
+                <label class="visually-hidden" for="r-approved-month">Month approved</label>
+                <select id="r-approved-month" name="approved-month" aria-describedby="r-approved-hint">
+                  <option value="">Month</option>
+                  <option value="1">January</option>
+                  <option value="2">February</option>
+                  <option value="3">March</option>
+                  <option value="4">April</option>
+                  <option value="5">May</option>
+                  <option value="6">June</option>
+                  <option value="7">July</option>
+                  <option value="8">August</option>
+                  <option value="9">September</option>
+                  <option value="10">October</option>
+                  <option value="11">November</option>
+                  <option value="12">December</option>
+                </select>
+              </div>
+              <div>
+                <label class="visually-hidden" for="r-approved-year">Year approved</label>
+                <select id="r-approved-year" name="approved-year" data-approval-years aria-describedby="r-approved-hint">
+                  <option value="">Year</option>
+                  <option value="in-progress">Still in progress</option>
+                </select>
+              </div>
+            </div>
+            <p class="field__hint" id="r-approved-hint">This is shown with your review. Choose "Still in progress" if you haven't received a decision yet.</p>
+            <p class="field__error">Please choose the year your application was approved.</p>
+          </fieldset>
+
           <div class="field">
             <label for="r-review">Your review <span class="req" aria-hidden="true">*</span></label>
             <textarea id="r-review" name="review" maxlength="1500" required aria-describedby="r-review-hint r-review-count"></textarea>

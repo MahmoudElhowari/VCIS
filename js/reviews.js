@@ -29,10 +29,15 @@
     return wrap;
   }
 
-  function formatDate(iso) {
-    var d = new Date(iso);
-    if (isNaN(d)) return "";
-    return d.toLocaleDateString("en-CA", { year: "numeric", month: "long" });
+  var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  // "2025-03" -> "Approved March 2025", "2025" -> "Approved in 2025", "in-progress" -> "Application in progress"
+  function approvalLabel(value) {
+    if (!value) return "";
+    if (value === "in-progress") return "Application in progress";
+    var parts = String(value).split("-");
+    var month = MONTHS[parseInt(parts[1], 10) - 1];
+    return month ? "Approved " + month + " " + parts[0] : "Approved in " + parts[0];
   }
 
   function reviewCard(r) {
@@ -45,11 +50,24 @@
     meta.appendChild(el("span", "review__name", r.name));
     var details = [r.location, r.service].filter(Boolean).join(" · ");
     if (details) meta.appendChild(el("span", "review__details", details));
-    var date = formatDate(r.createdAt);
-    if (date) {
-      var time = el("time", "review__date", date);
-      time.setAttribute("datetime", r.createdAt);
-      meta.appendChild(time);
+    var approval = approvalLabel(r.approved);
+    if (approval) {
+      var inProgress = r.approved === "in-progress";
+      var badge = el("span", "review__approved" + (inProgress ? " review__approved--progress" : ""));
+      if (!inProgress) {
+        var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("viewBox", "0 0 24 24");
+        svg.setAttribute("fill", "none");
+        svg.setAttribute("stroke", "currentColor");
+        svg.setAttribute("stroke-width", "2.5");
+        svg.setAttribute("aria-hidden", "true");
+        var tick = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        tick.setAttribute("d", "M20 6 9 17l-5-5");
+        svg.appendChild(tick);
+        badge.appendChild(svg);
+      }
+      badge.appendChild(document.createTextNode(approval));
+      meta.appendChild(badge);
     }
     card.appendChild(meta);
     return card;
@@ -103,6 +121,17 @@
     var button = form.querySelector("[type=submit]");
     var ratingField = form.querySelector(".rating-field");
 
+    // Year choices: this year back to 2000
+    var yearSelect = form.querySelector("[data-approval-years]");
+    if (yearSelect) {
+      for (var y = new Date().getFullYear(); y >= 2000; y--) {
+        var opt = document.createElement("option");
+        opt.value = String(y);
+        opt.textContent = String(y);
+        yearSelect.appendChild(opt);
+      }
+    }
+
     function fieldError(name, message) {
       var wrap = name === "rating" ? ratingField : (form.elements[name] && form.elements[name].closest(".field"));
       if (!wrap) return;
@@ -120,6 +149,8 @@
         service: fd.get("service") || "",
         rating: fd.get("rating"),
         text: (fd.get("review") || "").trim(),
+        approvedMonth: fd.get("approved-month") || "",
+        approvedYear: fd.get("approved-year") || "",
         consent: fd.get("consent") === "yes",
         website: fd.get("website") || "",
       };
@@ -127,9 +158,10 @@
       var errors = {};
       if (payload.name.length < 2) errors.name = "Please enter your name.";
       if (!payload.rating) errors.rating = "Please choose a star rating.";
+      if (payload.approvedMonth && !payload.approvedYear) errors["approved-year"] = "Please choose the year your application was approved.";
       if (payload.text.length < 20) errors.review = "Please write at least 20 characters.";
       if (!payload.consent) errors.consent = "Please confirm we may publish your review.";
-      ["name", "rating", "review", "consent"].forEach(function (k) { fieldError(k, errors[k]); });
+      ["name", "rating", "approved-year", "review", "consent"].forEach(function (k) { fieldError(k, errors[k]); });
       var first = Object.keys(errors)[0];
       if (first) {
         var focusTarget = first === "rating" ? form.querySelector("input[name=rating]") : form.elements[first];
@@ -157,7 +189,7 @@
           // Also send a copy through Netlify Forms so Nadia gets an email notification.
           var notify = new URLSearchParams();
           notify.append("form-name", "review");
-          ["name", "location", "service", "rating", "review"].forEach(function (k) { notify.append(k, fd.get(k) || ""); });
+          ["name", "location", "service", "rating", "approved-month", "approved-year", "review"].forEach(function (k) { notify.append(k, fd.get(k) || ""); });
           fetch("/", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: notify.toString() }).catch(function () {});
 
           form.reset();
