@@ -40,11 +40,16 @@
     return month ? "Approved " + month + " " + parts[0] : "Approved in " + parts[0];
   }
 
+  var cardCount = 0;
+
   function reviewCard(r) {
     var card = el("article", "review");
+    card.setAttribute("tabindex", "-1");
     card.appendChild(stars(r.rating));
     var quote = el("blockquote", "review__text");
-    quote.appendChild(el("p", null, r.text));
+    var body = el("p", null, r.text);
+    body.id = "review-text-" + (++cardCount);
+    quote.appendChild(body);
     card.appendChild(quote);
     var meta = el("footer", "review__meta");
     meta.appendChild(el("span", "review__name", r.name));
@@ -73,6 +78,77 @@
     return card;
   }
 
+  // Long reviews are shortened by CSS (line clamp). Add a "Read more" toggle only
+  // when the text is actually cut off; call again after layout changes.
+  function updateReadMore(card) {
+    var body = card.querySelector(".review__text p");
+    var btn = card.querySelector(".review__toggle");
+    if (card.classList.contains("is-expanded")) return;
+    var clipped = body.scrollHeight > body.clientHeight + 2;
+    if (clipped && !btn) {
+      btn = el("button", "review__toggle", "Read more");
+      btn.type = "button";
+      btn.setAttribute("aria-expanded", "false");
+      btn.setAttribute("aria-controls", body.id);
+      btn.addEventListener("click", function () {
+        var open = card.classList.toggle("is-expanded");
+        btn.setAttribute("aria-expanded", String(open));
+        btn.textContent = open ? "Show less" : "Read more";
+        if (!open && card.getBoundingClientRect().top < 0) card.scrollIntoView({ block: "start" });
+      });
+      card.querySelector(".review__text").after(btn);
+    } else if (btn) {
+      btn.hidden = !clipped;
+    }
+  }
+
+  // Web fonts can change line wrapping after the first render.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () { document.querySelectorAll(".review").forEach(updateReadMore); });
+  }
+
+  var resizeTimer;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () { document.querySelectorAll(".review").forEach(updateReadMore); }, 150);
+  });
+
+  // Render a list, either capped (data-limit, home page) or in pages (data-page-size, reviews page).
+  function renderList(list, reviews) {
+    var limit = parseInt(list.getAttribute("data-limit"), 10);
+    var pageSize = parseInt(list.getAttribute("data-page-size"), 10);
+    var items = limit ? reviews.slice(0, limit) : reviews;
+    var shown = 0;
+    var moreWrap = null;
+
+    function showNext() {
+      var batch = items.slice(shown, pageSize ? shown + pageSize : items.length);
+      var cards = batch.map(function (r) { var c = reviewCard(r); list.appendChild(c); return c; });
+      cards.forEach(updateReadMore);
+      shown += batch.length;
+      var remaining = items.length - shown;
+      if (moreWrap) {
+        moreWrap.hidden = remaining <= 0;
+        moreWrap.querySelector("button").textContent = "Show more reviews (" + remaining + ")";
+      }
+      return cards;
+    }
+
+    list.textContent = "";
+    if (pageSize && items.length > pageSize) {
+      moreWrap = el("p", "reviews-more");
+      var moreBtn = el("button", "btn btn--outline");
+      moreBtn.type = "button";
+      moreBtn.addEventListener("click", function () {
+        var added = showNext();
+        if (added[0]) added[0].focus({ preventScroll: false });
+      });
+      moreWrap.appendChild(moreBtn);
+      list.after(moreWrap);
+    }
+    showNext();
+  }
+
   function renderSummary(target, reviews) {
     if (!target) return;
     target.textContent = "";
@@ -93,14 +169,10 @@
       .then(function (data) {
         var reviews = (data && data.reviews) || [];
         lists.forEach(function (list) {
-          var limit = parseInt(list.getAttribute("data-limit"), 10) || reviews.length;
-          list.textContent = "";
           list.setAttribute("aria-busy", "false");
           var empty = document.getElementById(list.getAttribute("data-empty"));
           if (empty) empty.hidden = reviews.length > 0;
-          reviews.slice(0, limit).forEach(function (r) { list.appendChild(reviewCard(r)); });
-          var more = document.getElementById(list.getAttribute("data-more"));
-          if (more) more.hidden = reviews.length <= limit;
+          renderList(list, reviews);
         });
         document.querySelectorAll("[data-reviews-summary]").forEach(function (t) { renderSummary(t, reviews); });
       })

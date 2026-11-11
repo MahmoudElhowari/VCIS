@@ -81,23 +81,7 @@
         <p class="eyebrow">Testimonials</p>
         <h1>What our clients say</h1>
         <p>Real experiences from people Nadia has helped. Worked with us? We'd be grateful if you shared yours.</p>
-        <p style="margin-top:24px"><a class="btn btn--primary" href="#write-review">Write a review</a></p>
-      </div>
-    </section>
-
-    <section class="section" aria-labelledby="reviews-title">
-      <div class="container">
-        <div class="reviews-head">
-          <h2 id="reviews-title">Client reviews</h2>
-          <p class="reviews-summary" data-reviews-summary hidden></p>
-        </div>
-        <div class="reviews-grid" data-reviews-list data-empty="reviews-empty" aria-live="polite" aria-busy="true">
-          <p class="reviews-loading">Loading reviews…</p>
-        </div>
-        <div class="reviews-empty" id="reviews-empty" hidden>
-          <p><strong>No reviews have been published yet.</strong> Be the first to share your experience below.</p>
-        </div>
-        <noscript><p class="reviews-empty">Please enable JavaScript to see client reviews.</p></noscript>
+        <p class="hero__actions" style="margin-top:24px"><a class="btn btn--primary" href="#write-review">Write a review</a><a class="btn btn--ghost-light" href="#client-reviews">Read reviews</a></p>
       </div>
     </section>
 
@@ -208,6 +192,22 @@
           <button type="submit" class="btn btn--primary btn--block">Submit review</button>
           <p class="form-status" data-form-status role="status" tabindex="-1"></p>
         </form>
+      </div>
+    </section>
+
+    <section class="section" id="client-reviews" aria-labelledby="reviews-title">
+      <div class="container">
+        <div class="reviews-head">
+          <h2 id="reviews-title">Client reviews</h2>
+          <p class="reviews-summary" data-reviews-summary hidden></p>
+        </div>
+        <div class="reviews-grid" data-reviews-list data-page-size="6" data-empty="reviews-empty" aria-live="polite" aria-busy="true">
+          <p class="reviews-loading">Loading reviews…</p>
+        </div>
+        <div class="reviews-empty" id="reviews-empty" hidden>
+          <p><strong>No reviews have been published yet.</strong> Be the first to share your experience using the form above.</p>
+        </div>
+        <noscript><p class="reviews-empty">Please enable JavaScript to see client reviews.</p></noscript>
       </div>
     </section>
 

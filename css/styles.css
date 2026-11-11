@@ -651,3 +651,19 @@ fieldset.field { border: 0; padding: 0; }
 .review__approved { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 500; color: var(--success); }
 .review__approved svg { width: 15px; height: 15px; flex-shrink: 0; }
 .review__approved--progress { color: var(--slate-600); }
+
+/* Long reviews: show the first lines, with a "Read more" toggle (added by js/reviews.js when needed) */
+.reviews-grid { align-items: start; }
+.review__text p {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 7; line-clamp: 7; overflow: hidden;
+}
+.review.is-expanded .review__text p { display: block; -webkit-line-clamp: unset; line-clamp: none; overflow: visible; }
+.review__toggle {
+  align-self: flex-start; margin-top: -6px; padding: 6px 0; border: 0; background: none; cursor: pointer;
+  font-weight: 600; font-size: 0.95rem; color: var(--slate-600); text-decoration: underline; text-underline-offset: 3px;
+}
+.review__toggle:hover { color: var(--navy-700); }
+.review:focus { outline: none; }
+.review:focus-visible { outline: 3px solid var(--slate-500); outline-offset: 3px; }
+.reviews-more { display: flex; justify-content: center; margin-top: 32px; }
+.reviews-more[hidden] { display: none; }
