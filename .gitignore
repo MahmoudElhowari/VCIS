@@ -1,0 +1,14 @@
+# Not part of the View Canada website
+procare-garage/
+
+# Local tool settings
+.claude/
+
+# Dependencies and Netlify local files
+node_modules/
+.netlify/
+
+# OS clutter
+Thumbs.db
+desktop.ini
+.DS_Store

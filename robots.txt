@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /thank-you.html
+Disallow: /review-admin.html
+Disallow: /api/
+
+Sitemap: https://www.vciscanada.com/sitemap.xml
